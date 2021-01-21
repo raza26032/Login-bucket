@@ -24,29 +24,270 @@
     <!--===============================================================================================-->
     <script src="./js/socket.io.js"></script>
     <!--===============================================================================================-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/timeago.js/2.0.2/timeago.js"
+        integrity="sha512-N3oYWQZs8pMSQhQtB13XHSIry/zDIUimpMqX4QMULawuaAYgRWSiU17cLHh7f51xgkGY18jQtY2ph98HtKeWaA=="
+        crossorigin="anonymous"></script>
+
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .topnav {
+        overflow: hidden;
+        background-color: #333;
+    }
+
+    .topnav a {
+        float: left;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+    }
+
+    .topnav a:hover {
+        background-color: #ddd;
+        color: black;
+    }
+
+    .topnav a.active {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .pic-container {
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .pic {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    .pic-container.pic-xs {
+        width: 50px;
+        height: 50px;
+    }
+
+    .pic-container.pic-small {
+        width: 70px;
+        height: 70px;
+    }
+
+    .pic-container.pic-medium {
+        width: 150px;
+        height: 150px;
+    }
+
+    .pic-container.pic-large {
+        width: 250px;
+        height: 250px;
+    }
+
+
+    .pic-container.pic-xl {
+        width: 350px;
+        height: 350px;
+    }
+
+    .pic-container.pic-circle {
+        border-radius: 50%;
+    }
+
+    .pic-overlay {
+        background-color: #ccc;
+        opacity: 0.5;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        position: relative;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+    }
+
+    .pic-container:hover .pic-overlay {
+        top: -100%;
+    }
+
+    .pic-overlay a {
+        display: block;
+        padding: 10px;
+    }
+
+    .pic-xs .pic-overlay a {
+        padding: 5px;
+    }
+
+    .pic-overlay .fa-window-close-o {
+        color: red;
+    }
+
+    .pic-overlay .fa-pencil-square-o {
+        color: blue;
+    }
+
+    .pic-medium .pic-overlay a i {
+        font-size: 20px;
+    }
+
+    .pic-large .pic-overlay a i {
+        font-size: 35px;
+    }
+
+    .pic-xl .pic-overlay a i {
+        font-size: 45px;
+    }
+
+    .box9 {
+        background: #000;
+        text-align: center;
+        position: relative
+    }
+
+    .box9 img {
+        width: 100%;
+        height: auto
+    }
+
+    .box9:hover img {
+        opacity: .5
+    }
+
+    .box9 .box-content {
+        padding: 30px 10px 30px 0;
+        background: rgba(0, 0, 0, .65);
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        opacity: 0
+    }
+
+    .box9:hover .box-content {
+        top: 10px;
+        left: 10px;
+        bottom: 10px;
+        right: 10px;
+        opacity: 1
+    }
+
+    .box9 .title {
+        font-weight: 700;
+        color: gray;
+        line-height: 17px;
+        margin: 5px 90px;
+        position: absolute;
+        bottom: 55%;
+    }
+
+    .box10 .icon li a,
+    .box9 .icon li a {
+        line-height: 35px;
+        border-radius: 50%
+    }
+
+    .box9 .icon {
+        list-style: none;
+        padding: 0;
+        margin-top: 80px;
+        top: 50%;
+        margin-left: -30px;
+    }
+
+    .box9 .icon li {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    .box9:hover .icon li {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .box9:hover .icon li:first-child {
+        transition-delay: .1s
+    }
+
+    .box9:hover .icon li:nth-child(2) {
+        transition-delay: .2s
+    }
+
+    .box9 .icon li a {
+        display: block;
+        width: 35px;
+        height: 35px;
+        background: #f39c12;
+        font-size: 20px;
+        color: #000;
+        margin-right: 5px;
+        transition: all .35s ease 0s
+    }
+
+    .box9 .icon a:hover {
+        background: #fff
+    }
+
+    @media only screen and (max-width:990px) {
+        .box9 {
+            margin-bottom: 20px
+        }
+    }
+</style>
 
 <body onload="getProfile()">
-
-    <nav class="navbar navbar-light bg-light">
-        <button onclick="myTweets()">My profile</button>
-        <button onclick="getTweets()">Other's tweets</button>
+    <div class="topnav">
         <form class="form-inline">
-            <h3 id="welcomeUser">
-            </h3>
+            <a class="active" onclick="logout()" id="lgBtn">Log Out</a>
+            <a onclick="myTweets()" style="color: white; text-decoration: none;">My Profile</a>
+            <a onclick="getTweets()" style="color: white; text-decoration: none;">Other's Tweets</a>
+            <h3 id="welcomeUser" style="color: rgb(255, 255, 255); margin-left: 250px;"></h3>
 
+    </div>
+    </form>
 
-            <button onclick="logout()" id="lgBtn" class="btn btn-sm btn-outline-secondary ml-3"
-                type="button">LOGOUT</button>
-        </form>
-        <form action="#" onsubmit="return upload()">
-            <!-- dont get confused with return keyword inside onsubmit, it is there to prevent html page to reload/default behaviour, and this have nothing to do with actual file upload process but if you remove it page will reload on submit -->
-
-            <input required type="file" id="fileInput">
-            <button id="uploadBtn" type="submit"> Upload </button>
-        </form>
-    </nav>
-
+    <form action="#" onsubmit="return upload()">
+        <div class="container mt-40">
+            <div class="row mt-30">
+                <div class="col-md-4 col-sm-6">
+                    <div class="box9">
+                        <img src="http://bestjquery.com/tutorial/hover-effect/demo147/images/img-1.jpg">
+                        <div class="box-content">
+                            <h3 class="title" style="margin-right: -50px;" required type="file" id="fileInput"
+                                onchange="previewFile()">Change Photo</h3>
+                            <ul class="icon">
+                                <li><a href="#"><i class="fa fa-camera" id="uploadBtn" type="submit"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+    </form>
 
     <div class="container">
         <div class="create__post">
@@ -56,11 +297,7 @@
 
         <div class="myCard">
             <div>
-
             </div>
-
-            <img class="img " src="./image/image.png" alt="John" id="profilePic">
-
             <div class="posts__container">
 
                 <ul id="posts">

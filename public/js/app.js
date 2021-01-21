@@ -1,10 +1,10 @@
-var url = "http://localhost:5000"
+const url = "http://localhost:5000";
 // var url = "https://twitter-jahan.herokuapp.com"
 
-// var socket = io(url);
-// socket.on('connect', function () {
-//     console.log("connected")
-// });
+var socket = io(url);
+socket.on('connect', function () {
+    console.log("connected")
+});
 
 function signup() {
     axios({
@@ -12,7 +12,7 @@ function signup() {
         url: url + '/signup',
         data: {
             name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
+            email: document.getElementById('email').value.toLowerCase(),
             password: document.getElementById('password').value,
             phone: document.getElementById('phone').value,
             gender: document.getElementById('gender').value,
@@ -36,8 +36,8 @@ function login() {
         method: 'post',
         url: url + '/login',
         data: {
-            email: document.getElementById('lemail').value,
-            password: document.getElementById('lpassword').value,
+            email: document.getElementById('email').value.toLowerCase(),
+            password: document.getElementById('password').value,
         },
         withCredentials: true
     }).then((response) => {
@@ -103,39 +103,36 @@ function forgetPassword2() {
     return false
 }
 
-function logout() {
-    axios({
-        method: 'post',
-        url: url + '/logout',
-    }).then((response) => {
-        location.href = "../login.html"
-    }, (error) => {
-        console.log(error);
-    });
-    return false
-}
+// function logout() {
+//     axios({
+//         method: 'post',
+//         url: url + '/logout',
+//     }).then((response) => {
+//         location.href = "../login.html"
+//     }, (error) => {
+//         console.log(error);
+//     });
+//     return false
+// }
 
 function getProfile() {
-    // console.log("url=>", url);
     axios({
         method: 'get',
         url: url + "/profile",
     }).then((response) => {
-        // console.log("welcoming user==>", response);
-        console.log(response.data);
-        document.getElementById('welcomeUser').innerHTML = response.data.profile.userName;
-        sessionStorage.setItem("userEmail", response.data.profile.userEmail);
+        document.getElementById('welcomeUser').innerHTML = response.data.profile.name;
+        sessionStorage.setItem("email", response.data.profile.email);
         if (response.data.profile.profileUrl) {
             document.getElementById("fileInput").style.display = "none";
             document.getElementById("uploadBtn").style.display = "none";
             document.getElementById("profilePic").src = response.data.profile.profileUrl;
-
+        }
+        else{
+            document.getElementById("uploadTxt").innerHTML = "Upload profile picture";
         }
         getTweets();
     }, (error) => {
-        // console.log(error.message);
         location.href = "./login.html"
-        // console.log("this is my error", error);
     });
 
 }
@@ -144,54 +141,58 @@ const getTweets = () => {
     document.getElementById("posts").innerHTML = "";
     const Http = new XMLHttpRequest();
     Http.open("GET", url + "/getTweets");
-    Http.send();
     Http.onreadystatechange = (e) => {
         if (Http.readyState === 4) {
 
             data = JSON.parse((Http.responseText));
-            // console.log(data);
-            console.log(data)
             for (let i = 0; i < data.tweets.length; i++) {
                 date = moment((data.tweets[i].createdOn)).fromNow()
-                // if (data.tweets[i].userEmail !== userEmail) {
                 var eachTweet = document.createElement("li");
-
-                eachTweet.innerHTML =
-                    `                <h4 class="userName">
-                ${data.tweets[i].userName}
-            </h4> 
-            <small class="timeago">${date}</small>
-        
-            <p class="userPost" datetime=${date}>
-                ${data.tweets[i].tweetText}
-            </p>`;
-
-
-                // console.log(`User: ${tweets[i]} ${tweets[i].userPosts[j]}`)
+           if (data.tweets[i].profileUrl)
+           {
+            eachTweet.innerHTML =
+            `            
+            <img src="${data.tweets[i].profileUrl}" alt="Avatar" class="avatar">  
+            <h4 class="userName">
+            ${data.tweets[i].userName}
+        </h4> 
+        <small class="timeago">${date}</small>
+    
+        <p class="userPost" datetime=${date}>
+            ${data.tweets[i].tweetText}
+        </p>`
+           }
+           else{
+            eachTweet.innerHTML =
+            `            
+            <img src="./image/image.png" alt="Avatar" class="avatar">  
+            <h4 class="userName">
+            ${data.tweets[i].userName}
+        </h4> 
+        <small class="timeago">${date}</small>
+    
+        <p class="userPost" datetime=${date}>
+            ${data.tweets[i].tweetText}
+        </p>`
+           
+           }
                 document.getElementById("posts").appendChild(eachTweet)
-                // }
             }
         }
     }
-
 }
-
-
 
 const postTweet = () => {
 
-    userEmail = sessionStorage.getItem("userEmail");
+    email = sessionStorage.getItem("email");
     const Http = new XMLHttpRequest();
     Http.open("POST", url + "/postTweet")
     Http.setRequestHeader("Content-Type", "application/json");
     Http.send(JSON.stringify({
-        userEmail: userEmail,
+        email: email,
         tweetText: document.getElementById("tweetText").value,
     }))
-
-
     document.getElementById("tweetText").value = "";
-
 }
 
 const myTweets = () => {
@@ -202,39 +203,123 @@ const myTweets = () => {
     Http.onreadystatechange = (e) => {
         if (Http.readyState === 4) {
             let jsonRes = JSON.parse(Http.responseText)
-            // console.log(jsonRes);
             for (let i = 0; i < jsonRes.tweets.length; i++) {
-                // console.log(`this is ${i} tweet = ${jsonRes.tweets[i].createdOn}`);
-
+                date = moment(jsonRes.tweets[i].createdOn).fromNow()
                 var eachTweet = document.createElement("li");
+                if (data.tweets[i].profileUrl)
+                {
                 eachTweet.innerHTML =
-                    `<h4 class="userName">
+                    `
+                <img src="${data.tweets[i].profileUrl}" alt="Avatar" class="avatar">  
+                    <h4 class="userName">
                     ${jsonRes.tweets[i].userName}
                 </h4> 
-                <small class="timeago">${jsonRes.tweets[i].createdOn}</small>
+                <small class="timeago">${date}</small>
                 <p class="userPost">
                     ${jsonRes.tweets[i].tweetText}
                 </p>`;
-
-                // console.log(`User: ${tweets[i]} ${tweets[i].userPosts[j]}`)
+                document.getElementById("posts").appendChild(eachTweet)
+            }
+            else{
+                eachTweet.innerHTML =
+                    `
+                <img src="./image/image.png" alt="Avatar" class="avatar">  
+                    <h4 class="userName">
+                    ${jsonRes.tweets[i].userName}
+                </h4> 
+                <small class="timeago">${date}</small>
+                <p class="userPost">
+                    ${jsonRes.tweets[i].tweetText}
+                </p>`;
                 document.getElementById("posts").appendChild(eachTweet)
 
             }
+        }
         }
     }
 }
 
 socket.on("NEW_POST", (newPost) => {
-
     var eachTweet = document.createElement("li");
-    eachTweet.innerHTML =
-        `<h4 class="userName">
-        ${newPost.userName}
+    
+    
+        eachTweet.innerHTML =
+        `
+        <h4 class="userName">
+        ${newPost.name}
     </h4> 
-    <small class="timeago">${moment(newPost.createdOn).fromNow()}</small>
     <p class="userPost">
         ${newPost.tweetText}
     </p>`;
-    // console.log(`User: ${tweets[i]} ${tweets[i].userPosts[j]}`)
     document.getElementById("posts").appendChild(eachTweet)
+    
 })
+
+let logout = () => {
+    axios({
+        method: "post",
+        url: url + "/logout",
+    }).then((response) => {
+        alert(response.data);
+        sessionStorage.removeItem("email");
+        window.location.href = "./login.html";
+    })
+}
+
+function upload() {
+
+    var fileInput = document.getElementById("fileInput");
+
+    let formData = new FormData();
+
+    formData.append("myFile", fileInput.files[0]);
+    formData.append("myName", "malik");
+    formData.append("myDetails",
+        JSON.stringify({
+            "email": sessionStorage.getItem("email"),
+            "year": "2021"
+        })
+    );
+
+    axios({
+        method: 'post',
+        url: url + "/upload",
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' }
+    })
+        .then(res => {
+            document.getElementById("uploadTxt").innerHTML = ""
+            location.reload();
+
+        })
+        .catch(err => {
+            console.log(err);
+        })
+
+    return false;
+}
+
+
+function previewFile() {
+    const preview = document.querySelector('img');
+    const file = document.querySelector('input[id=fileInput]').files[0];
+    const reader = new FileReader();
+
+    reader.addEventListener("load", function () {
+        preview.src = reader.result;
+    }, false);
+
+    if (file) {
+        reader.readAsDataURL(file);
+        document.getElementById("uploadBtn").style.display = "initial";
+        document.getElementById("uploadTxt").innerHTML = "Press upload to upload profile picture";
+    }
+}
+document.getElementById("uploadPicture").style.display="none";
+
+function changeText(){
+    document.getElementById("uploadPicture").style.display="block";
+}
+function hideText(){
+    document.getElementById("uploadPicture").style.display="none";
+}

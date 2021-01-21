@@ -9,7 +9,7 @@ var cors = require("cors");
 var morgan = require("morgan");
 var path = require("path")
 var jwt = require('jsonwebtoken')
-var { userModel, tweetModel } = require('./dbconn/modules');
+var { userModel, tweetsModel } = require('./dbconn/modules');
 var app = express();
 var authRoutes = require('./routes/auth')
 var http = require("http");
@@ -18,27 +18,27 @@ var server = http.createServer(app);
 var io = socketIO(server);
 const fs = require('fs')
 const multer = require('multer')
+const admin = require("firebase-admin");
 
 io.on("connection", () => {
     console.log("io is started");
 })
 
-// const storage = multer.diskStorage({
-//     destination: './uploads/',
-//     filename: function (req, file, cb) {
-//         cb(null, `${new Date().getTime()}-${file.filename}.${file.mimetype.split("/")[1]}`)
-//     }
-// })
-// var upload = multer({ storage: storage })
+const storage = multer.diskStorage({
+    destination: './uploads/',
+    filename: function (req, file, cb) {
+        cb(null, `${new Date().getTime()}-${file.filename}.${file.mimetype.split("/")[1]}`)
+    }
+})
+var upload = multer({ storage: storage })
 
-// const admin = require("firebase-admin");
-// var SERVICE_ACCOUNT = JSON.parse(process.env.SERVICE_ACCOUNT)
+var serviceAccount = require("./firebase/firebase.json");
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://webmobile-48ab0.firebaseio.com"
+});
 
-// admin.initializeApp({
-//     credential: admin.credential.cert(SERVICE_ACCOUNT),
-//     databaseURL: process.env.databaseURL
-// });
-// const bucket = admin.storage().bucket("gs://twitter-profile-pics.appspot.com");
+const bucket = admin.storage().bucket("gs://webmobile-48ab0.appspot.com");
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -86,115 +86,158 @@ app.use(function (req, res, next) {
 })
 
 app.get("/profile", (req, res, next) => {
-
-    console.log(req.body)
-
-    userModel.findById(req.body.jToken.id, 'name email phone gender createdOn profilePic',
+    userModel.findById(req.body.jToken.id, 'name email profileUrl',
         function (err, doc) {
             if (!err) {
                 res.send({
-                    status: 200,
                     profile: doc
                 })
-
             } else {
                 res.status(500).send({
                     message: "server error"
                 })
             }
-        })
-})
 
-app.post('/tweet', (req, res, next) => {
-    if (!req.body.userName && !req.body.tweet) {
-        res.status(403).send({
-            message: "please provide email or tweet"
         })
-    }
-    console.log(req.body.userName)
-    var newTweet = new tweetModel({
-        "name": req.body.userName,
-        "tweets": req.body.tweet
-    })
-    newTweet.save((err, data) => {
+});
+
+app.post("/postTweet", (req, res, next) => {
+    if (!req.body.email || !req.body.tweetText) {
+        res.status(409).send(`
+            Please send email and tweet in json body
+            e.g:
+            "userEmail" : "abc@gmail.com",
+            "tweetText" : "xxxxxx"
+        `)
+        return;
+    };
+    userModel.findById(req.body.jToken.id, 'name email profileUrl',
+        (err, user) => {
+            if (!err) {
+                tweetsModel.create({
+                    email: req.body.email,
+                    tweetText: req.body.tweetText,
+                    name: user.name,
+                    profileUrl : user.profileUrl,
+                }).then((data) => {
+                    console.log("Tweet created: " + data),
+                        res.status(200).send({
+                            message: "tweet created",
+                            name: user.name,
+                            email: user.email,
+                            profileUrl : user.profileUrl,
+                        });
+                    io.emit("NEW_POST", data);
+                }).catch((err) => {
+                    res.status(500).send({
+                        message: "an error occured : " + err,
+                    });
+                });
+            }
+            else {
+                res.status.send({
+                    message: "an error occured" + err,
+                })
+            }
+        })
+});
+
+app.get("/getTweets", (req, res, next) => {
+
+    tweetsModel.find({}, (err, data) => {
         if (!err) {
-            res.send({
-                status: 200,
-                message: "Post created",
-                data: data
+            userModel.findById(req.body.jToken.id,  (err, user) => {
+                console.log("tweet data=>", data);
+                res.status(200).send({
+                    tweets: data,
+                });
             })
-            console.log(data.tweets)
-            io.emit("NEW_POST", data)
-        } else {
-            console.log(err);
-            res.status(500).send({
-                message: "user create error, " + err
-            })
-        }
-    });
-})
-
-app.get('/getTweets', (req, res, next) => {
-
-    tweetModel.find({}, (err, data) => {
-        if (err) {
-            console.log(err)
         }
         else {
-            console.log(data)
-            req.body.data = data
-            res.send(data)
+            console.log("error : ", err);
+            res.status(500).send("error");
         }
     })
+});
+
+app.get("/myTweets", (req, res, next) => {
+    console.log("my tweets user=>", req.body);
+    tweetsModel.find({ email: req.body.jToken.email }, (err, data) => {
+        if (!err) {
+            console.log("tweet data=>", data);
+            res.status(200).send({
+                tweets: data,
+            });
+        }
+        else {
+            console.log("error : ", err);
+            res.status(500).send("error");
+        }
+    })
+});
+
+app.post("/upload", upload.any(), (req, res, next) => {
+    userDetails = JSON.parse(req.body.myDetails)
+    email = userDetails.email
+
+    bucket.upload(
+        req.files[0].path,
+        function (err, file, apiResponse) {
+            if (!err) {
+
+                file.getSignedUrl({
+                    action: 'read',
+                    expires: '03-09-2491'
+                }).then((urlData, err) => {
+                    if (!err) {
+                        console.log("public downloadable url: ", urlData[0]) 
+                        console.log("my email is => ", email);
+                        userModel.findOne({ email: email }, {}, (err, user) => {
+                            if (!err) {
+                                tweetsModel.findOne({ email: email }, {}, (err, tweetModel) => {
+                                    if (!err) {
+                                        tweetModel.update({ profileUrl: urlData[0] }, (err, tweetProfile)=>{
+                                            if (!err){
+                                                console.log("profile url updated");
+                                            }
+                                        })
+                                    }
+                                });
+                                console.log("user is ===>", user);
+                                user.update({ profileUrl: urlData[0] }, (err, updatedUrl) => {
+                                    if (!err) {
+                                        res.status(200).send({
+                                            message: "profile picture succesfully uploaded",
+                                            url: updatedUrl,
+                                        })
+                                        console.log("succesfully uploaded");
+                                    }
+                                    else {
+                                        res.status(500).send({
+                                            message: "an error occured" + err,
+                                        })
+                                        console.log("error occured whhile uploading");
+                                    }
+
+                                })
+                            }
+                        })
+
+                        try {
+                            fs.unlinkSync(req.files[0].path)
+                            return;
+                        } catch (err) {
+                            console.error(err)
+                        }
+                    }
+                })
+            } else {
+                console.log("err: ", err)
+                res.status(500).send();
+            }
+        });
 })
-// app.post("/upload", upload.any(), (req, res, next) => {
 
-//     console.log("req.body: ", req.body);
-//     console.log("req.body: ", JSON.parse(req.body.myDetails));
-//     console.log("req.files: ", req.files);
-
-//     console.log("uploaded file name: ", req.files[0].originalname);
-//     console.log("file type: ", req.files[0].mimetype);
-//     console.log("file name in server folders: ", req.files[0].filename);
-//     console.log("file path in server folders: ", req.files[0].path);
-
-//     bucket.upload(
-//         req.files[0].path,
-//         function (err, file, apiResponse) {
-//             if (!err) {
-//                 file.getSignedUrl({
-//                     action: 'read',
-//                     expires: '03-09-2491'
-//                 }).then((urlData, err) => {
-//                     if (!err) {
-//                         console.log("public downloadable url: ", urlData[0])
-//                         userModel.findOne({email: req.body.email},(err,user)=>{
-//                             if (!err) {
-//                                 user.update({ profilePic: urlData[0]}, {}, function (err, data) {
-//                                     res.send({
-//                                         pic:user.profilePic
-//                                     });
-//                                 })
-//                             }
-//                             else{
-//                                 res.send({
-//                                     message: "error"
-//                                 });
-//                             }
-//                         })
-//                         try {
-//                             fs.unlinkSync(req.files[0].path)
-//                         } catch (err) {
-//                             console.error(err)
-//                         }
-//                     }
-//                 })
-//             }else{
-//                 console.log("err: ", err)
-//                 res.status(500).send();
-//             }
-//         });
-// })
 
 server.listen(PORT, () => {
     console.log("server is running on: ", PORT);
