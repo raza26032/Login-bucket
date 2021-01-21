@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Profile</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="images/icons/favicon.ico" />
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+    <!--===============================================================================================-->
+    <link rel="stylesheet" href="css/profile.css">
+    <!--===============================================================================================-->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!--===============================================================================================-->
+    <script src="./js/socket.io.js"></script>
+    <!--===============================================================================================-->
+</head>
+
+<body onload="getProfile()">
+
+    <nav class="navbar navbar-light bg-light">
+        <button onclick="myTweets()">My profile</button>
+        <button onclick="getTweets()">Other's tweets</button>
+        <form class="form-inline">
+            <h3 id="welcomeUser">
+            </h3>
+
+
+            <button onclick="logout()" id="lgBtn" class="btn btn-sm btn-outline-secondary ml-3"
+                type="button">LOGOUT</button>
+        </form>
+        <form action="#" onsubmit="return upload()">
+            <!-- dont get confused with return keyword inside onsubmit, it is there to prevent html page to reload/default behaviour, and this have nothing to do with actual file upload process but if you remove it page will reload on submit -->
+
+            <input required type="file" id="fileInput">
+            <button id="uploadBtn" type="submit"> Upload </button>
+        </form>
+    </nav>
+
+
+    <div class="container">
+        <div class="create__post">
+            <input id="tweetText" placeholder="whats on your mind?" class="posts__input" maxlength="150">
+            <button id="postBtn" class="post__button" onclick="postTweet()">Post</button>
+        </div>
+
+        <div class="myCard">
+            <div>
+
+            </div>
+
+            <img class="img " src="./image/image.png" alt="John" id="profilePic">
+
+            <div class="posts__container">
+
+                <ul id="posts">
+
+                </ul>
+                <div id="myPost">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!--===============================================================================================-->
+    <script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+    <!--===============================================================================================-->
+    <script src="vendor/bootstrap/js/popper.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <!--===============================================================================================-->
+    <script src="vendor/select2/select2.min.js"></script>
+    <!--===============================================================================================-->
+    <script src="vendor/tilt/tilt.jquery.min.js"></script>
+    <script>
+        $('.js-tilt').tilt({
+            scale: 1.1
+        })
+    </script>
+    <!--===============================================================================================-->
+    <script src="js/main.js"></script>
+    <!--===============================================================================================-->
+    <script src="./js/app.js"></script>
+    <!--===============================================================================================-->
+
+</body>
+
+</html>
