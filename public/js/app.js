@@ -1,5 +1,5 @@
-const url = "http://localhost:5000";
-// var url = "https://twitter-jahan.herokuapp.com"
+// const url = "http://localhost:5000";
+var url = "https://server-class-one.herokuapp.com"
 
 var socket = io(url);
 socket.on('connect', function () {
