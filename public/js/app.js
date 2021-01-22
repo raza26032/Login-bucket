@@ -120,15 +120,22 @@ function getProfile() {
         method: 'get',
         url: url + "/profile",
     }).then((response) => {
+    
+        var flag = response.data.profile.profilePic
         document.getElementById('welcomeUser').innerHTML = response.data.profile.name;
         sessionStorage.setItem("email", response.data.profile.email);
-        if (response.data.profile.profileUrl) {
-            document.getElementById("fileInput").style.display = "none";
-            document.getElementById("uploadBtn").style.display = "none";
-            document.getElementById("profilePic").src = response.data.profile.profileUrl;
+
+        if (flag) {
+            // document.getElementById("fileInput").style.display = "none";
+            // document.getElementById("uploadBtn").style.display = "none";
+            document.getElementById("dbImage").src = response.data.profile.profilePic;
+
         }
         else{
             document.getElementById("uploadTxt").innerHTML = "Upload profile picture";
+            document.getElementById("dbImage").src = "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"
+
+            console.log("nahe hao");
         }
         getTweets();
     }, (error) => {
@@ -152,7 +159,7 @@ const getTweets = () => {
            {
             eachTweet.innerHTML =
             `            
-            <img src="${data.tweets[i].profileUrl}" alt="Avatar" class="avatar">  
+       
             <h4 class="userName">
             ${data.tweets[i].userName}
         </h4> 
@@ -165,7 +172,7 @@ const getTweets = () => {
            else{
             eachTweet.innerHTML =
             `            
-            <img src="./image/image.png" alt="Avatar" class="avatar">  
+    
             <h4 class="userName">
             ${data.tweets[i].userName}
         </h4> 
@@ -210,7 +217,7 @@ const myTweets = () => {
                 {
                 eachTweet.innerHTML =
                     `
-                <img src="${data.tweets[i].profileUrl}" alt="Avatar" class="avatar">  
+           
                     <h4 class="userName">
                     ${jsonRes.tweets[i].userName}
                 </h4> 
@@ -223,7 +230,7 @@ const myTweets = () => {
             else{
                 eachTweet.innerHTML =
                     `
-                <img src="./image/image.png" alt="Avatar" class="avatar">  
+            
                     <h4 class="userName">
                     ${jsonRes.tweets[i].userName}
                 </h4> 
@@ -232,7 +239,6 @@ const myTweets = () => {
                     ${jsonRes.tweets[i].tweetText}
                 </p>`;
                 document.getElementById("posts").appendChild(eachTweet)
-
             }
         }
         }
@@ -241,8 +247,7 @@ const myTweets = () => {
 
 socket.on("NEW_POST", (newPost) => {
     var eachTweet = document.createElement("li");
-    
-    
+
         eachTweet.innerHTML =
         `
         <h4 class="userName">
@@ -288,38 +293,11 @@ function upload() {
         headers: { 'Content-Type': 'multipart/form-data' }
     })
         .then(res => {
-            document.getElementById("uploadTxt").innerHTML = ""
-            location.reload();
-
+            document.getElementById("dbImage").src = res.data.url
         })
         .catch(err => {
             console.log(err);
         })
 
     return false;
-}
-
-
-function previewFile() {
-    const preview = document.querySelector('img');
-    const file = document.querySelector('input[id=fileInput]').files[0];
-    const reader = new FileReader();
-
-    reader.addEventListener("load", function () {
-        preview.src = reader.result;
-    }, false);
-
-    if (file) {
-        reader.readAsDataURL(file);
-        document.getElementById("uploadBtn").style.display = "initial";
-        document.getElementById("uploadTxt").innerHTML = "Press upload to upload profile picture";
-    }
-}
-document.getElementById("uploadPicture").style.display="none";
-
-function changeText(){
-    document.getElementById("uploadPicture").style.display="block";
-}
-function hideText(){
-    document.getElementById("uploadPicture").style.display="none";
 }

@@ -35,10 +35,10 @@ var upload = multer({ storage: storage })
 var serviceAccount = require("./firebase/firebase.json");
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://webmobile-48ab0.firebaseio.com"
+    databaseURL: "https://login-bucket.firebaseio.com"
 });
 
-const bucket = admin.storage().bucket("gs://webmobile-48ab0.appspot.com");
+const bucket = admin.storage().bucket("gs://login-bucket.appspot.com");
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -86,7 +86,7 @@ app.use(function (req, res, next) {
 })
 
 app.get("/profile", (req, res, next) => {
-    userModel.findById(req.body.jToken.id, 'name email profileUrl',
+    userModel.findById(req.body.jToken.id, 'name email profilePic',
         function (err, doc) {
             if (!err) {
                 res.send({
@@ -179,7 +179,7 @@ app.get("/myTweets", (req, res, next) => {
 app.post("/upload", upload.any(), (req, res, next) => {
     userDetails = JSON.parse(req.body.myDetails)
     email = userDetails.email
-
+    console.log("user email is => " , email);
     bucket.upload(
         req.files[0].path,
         function (err, file, apiResponse) {
@@ -194,21 +194,12 @@ app.post("/upload", upload.any(), (req, res, next) => {
                         console.log("my email is => ", email);
                         userModel.findOne({ email: email }, {}, (err, user) => {
                             if (!err) {
-                                tweetsModel.findOne({ email: email }, {}, (err, tweetModel) => {
-                                    if (!err) {
-                                        tweetModel.update({ profileUrl: urlData[0] }, (err, tweetProfile)=>{
-                                            if (!err){
-                                                console.log("profile url updated");
-                                            }
-                                        })
-                                    }
-                                });
                                 console.log("user is ===>", user);
-                                user.update({ profileUrl: urlData[0] }, (err, updatedUrl) => {
+                                user.update({ profilePic: urlData[0] }, (err, updatedUrl) => {
                                     if (!err) {
                                         res.status(200).send({
                                             message: "profile picture succesfully uploaded",
-                                            url: updatedUrl,
+                                            url: urlData[0],
                                         })
                                         console.log("succesfully uploaded");
                                     }
