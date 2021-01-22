@@ -5,7 +5,8 @@ var { userModel, otpModel, } = require('../dbconn/modules')
 var router = express.Router();
 var SERVER_SECRET = process.env.SECRET || "1234";
 var postmark = require("postmark");
-var client = new postmark.Client("8fb43547-c56c-4b63-9b33-8484b9f935cc");
+var API = process.env.SECRET
+var client = new postmark.Client(API);
 
 router.post("/signup", (req, res, next) => {
 
